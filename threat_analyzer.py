@@ -2,47 +2,90 @@ import json
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MinMaxScaler
-import os
 
-DATA_FILE = "data/cve_data.json"
-
-def load_cve_data(filepath=DATA_FILE):
-    """Load CVE JSON data"""
-    if os.path.exists(filepath):
-        with open(filepath) as f:
+# -----------------------------
+# Load CVE Data
+# -----------------------------
+def load_cve_data(filepath="data/cve_data.json"):
+    """
+    Load CVE data from JSON file.
+    """
+    try:
+        with open(filepath, "r") as f:
             return json.load(f)
-    else:
+    except FileNotFoundError:
+        print(f"File not found: {filepath}")
+        return []
+    except json.JSONDecodeError:
+        print(f"Invalid JSON format: {filepath}")
         return []
 
+# -----------------------------
+# Preprocess CVE Data
+# -----------------------------
 def preprocess_cve(cve_items):
-    """Convert raw CVE JSON into DataFrame"""
+    """
+    Convert CVE JSON items into a DataFrame with necessary columns.
+    """
     rows = []
     for item in cve_items:
-        cve = item.get("cve", {})
-        cve_id = cve.get("id", "N/A")
-        descs = cve.get("descriptions", [])
-        description = descs[0].get("value", "") if descs else ""
-        metrics = cve.get("metrics", {}).get("cvssMetricV31", [])
-        impact_score = metrics[0].get("cvssData", {}).get("baseScore", 0) if metrics else 0
+        # Extract CVE ID
+        cve_id = item.get("cve", {}).get("CVE_data_meta", {}).get("ID", "N/A")
+        
+        # Extract description
+        description_list = item.get("cve", {}).get("description", {}).get("description_data", [])
+        description = description_list[0].get("value", "") if description_list else ""
+
+        # Extract impact score
+        impact_score = item.get("impact", {}).get("baseMetricV3", {}).get("cvssV3", {}).get("baseScore", 0)
 
         rows.append({
             "CVE_ID": cve_id,
             "Description": description,
             "Impact_Score": impact_score
         })
-    return pd.DataFrame(rows)
+    
+    df = pd.DataFrame(rows)
+    # Fill missing descriptions with placeholder
+    df["Description"] = df["Description"].fillna("No description available").str.strip()
+    return df
 
+# -----------------------------
+# Prioritize Threats
+# -----------------------------
 def prioritize_threats(df):
-    """Calculate relevance and priority score"""
-    if df.empty or "Description" not in df.columns:
+    """
+    Calculate relevance and priority scores using TF-IDF and Impact Score.
+    """
+    # Drop rows with empty descriptions
+    df = df[df["Description"].notna() & (df["Description"] != "")]
+    
+    if df.empty:
+        print("No valid CVE descriptions to analyze.")
+        df["Relevance_Score"] = 0
+        df["Priority_Score"] = df["Impact_Score"]
         return df
 
+    # TF-IDF scoring for relevance
     tfidf = TfidfVectorizer(stop_words="english")
-    X = tfidf.fit_transform(df["Description"].fillna(""))
-    relevance_score = X.sum(axis=1).A1
+    X = tfidf.fit_transform(df["Description"])
+    relevance_score = X.sum(axis=1).A1  # sum of TF-IDF weights per CVE
 
+    # Normalize relevance score between 0-1
     scaler = MinMaxScaler()
-    df["Relevance_Score"] = scaler.fit_transform(relevance_score.reshape(-1,1))
+    df["Relevance_Score"] = scaler.fit_transform(relevance_score.reshape(-1, 1))
+
+    # Calculate combined priority score
     df["Priority_Score"] = (df["Impact_Score"] + df["Relevance_Score"]) / 2
 
+    # Sort by priority descending
     return df.sort_values(by="Priority_Score", ascending=False)
+
+# -----------------------------
+# Main Test
+# -----------------------------
+if __name__ == "__main__":
+    cve_items = load_cve_data()
+    df = preprocess_cve(cve_items)
+    df = prioritize_threats(df)
+    print(df.head(10))
