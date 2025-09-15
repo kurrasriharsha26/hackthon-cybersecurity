@@ -3,9 +3,7 @@
         "cve": {
             "CVE_data_meta": {"ID": "CVE-2024-3400"},
             "description": {
-                "description_data": [
-                    {"value": "Buffer overflow vulnerability in ABC software allows remote attackers to execute arbitrary code."}
-                ]
+                "description_data": [{"value": "Buffer overflow in ABC software allows remote code execution"}]
             }
         },
         "impact": {
@@ -16,52 +14,11 @@
         "cve": {
             "CVE_data_meta": {"ID": "CVE-2024-3401"},
             "description": {
-                "description_data": [
-                    {"value": "SQL injection vulnerability in login form of XYZ application."}
-                ]
+                "description_data": [{"value": "SQL injection in XYZ login form"}]
             }
         },
         "impact": {
             "baseMetricV3": {"cvssV3": {"baseScore": 7.5}}
-        }
-    },
-    {
-        "cve": {
-            "CVE_data_meta": {"ID": "CVE-2024-3402"},
-            "description": {
-                "description_data": [
-                    {"value": "Cross-site scripting (XSS) vulnerability in DEF portal allows cookie theft."}
-                ]
-            }
-        },
-        "impact": {
-            "baseMetricV3": {"cvssV3": {"baseScore": 6.1}}
-        }
-    },
-    {
-        "cve": {
-            "CVE_data_meta": {"ID": "CVE-2024-3403"},
-            "description": {
-                "description_data": [
-                    {"value": "Privilege escalation vulnerability in GHI OS kernel allows local users to gain root access."}
-                ]
-            }
-        },
-        "impact": {
-            "baseMetricV3": {"cvssV3": {"baseScore": 8.4}}
-        }
-    },
-    {
-        "cve": {
-            "CVE_data_meta": {"ID": "CVE-2024-3404"},
-            "description": {
-                "description_data": [
-                    {"value": "Denial of service (DoS) vulnerability in JKL service can crash the server."}
-                ]
-            }
-        },
-        "impact": {
-            "baseMetricV3": {"cvssV3": {"baseScore": 5.0}}
         }
     }
 ]
