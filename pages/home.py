@@ -2,8 +2,6 @@ import streamlit as st
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from ..threat_analyzer.threat_analyzer import load_cve_data, preprocess_cve, prioritize_threats
-
 def show():
     st.header("🏠 Home - CVE Summary")
 
